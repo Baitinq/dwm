@@ -1,1 +1,6 @@
+*.diff
+*.orig
+*.rej
+*.o
 dwm
+dwm.pdf
