@@ -1,124 +1,67 @@
-#!/bin/bash
-# Screenshot: http://s.natalian.org/2013-08-17/dwm_status.png
-# Network speed stuff stolen from http://linuxclues.blogspot.sg/2009/11/shell-script-show-network-speed.html
+#!/bin/sh
 
-separator="|"
+# This script sets the statusbar with the xsetroot command at the end. Have it
+# started by ~/.xinitrc or ~/.xprofile.
 
-# This function parses /proc/net/dev file searching for a line containing $interface data.
-# Within that line, the first and ninth numbers after ':' are respectively the received and transmited bytes.
-function get_bytes {
-# Find active network interface
-interface=$(ip route get 8.8.8.8 2>/dev/null| awk '{print $5}')
-line=$(grep $interface /proc/net/dev | cut -d ':' -f 2 | awk '{print "received_bytes="$1, "transmitted_bytes="$9}')
-eval $line
-now=$(date +%s%N)
-}
+# Set the deliminter character.
 
-# Function which calculates the speed using actual and old byte number.
-# Speed is shown in KByte per second when greater or equal than 1 KByte per second.
-# This function should be called each second.
+delim="|"
 
-function get_velocity {
-value=$1
-old_value=$2
-now=$3
 
-timediff=$(($now - $old_time))
-velKB=$(echo "1000000000*($value-$old_value)/1024/$timediff" | bc)
-if test "$velKB" -gt 1024
-then
-	echo $(echo "scale=2; $velKB/1024" | bc)MB/s
-else
-	echo ${velKB}KB/s
-fi
-}
+# Here is the (big) function that outputs the appearance of the statusbar. It
+# can really be broken down into many submodules which I've commented and
+# explained.
+status() { \
 
-# Get initial values
-get_bytes
-old_received_bytes=$received_bytes
-old_transmitted_bytes=$transmitted_bytes
-old_time=$now
+	echo $(python /home/baitinq/.config/polybar/scripts/weather.py)
 
-print_volume() {
-	volume="$(amixer get Master | tail -n1 | sed -r 's/.*\[(.*)%\].*/\1/')"
-	if test "$volume" -gt 0
-	then
-		echo -e "\uE05D${volume}"
-	else
-		echo -e "Mute"
-	fi
-}
+	echo "$delim"
 
-print_wifi() {
-	ip=$(ip route get 8.8.8.8 2>/dev/null|grep -Eo 'src [0-9.]+'|grep -Eo '[0-9.]+')
+	# Get the volume of ALSA's master volume output.  Show an icon if or
+	# not muted.
+	amixer get Master | grep -o "[0-9]*%\|\[on\]\|\[off\]" | sed "s/\[on\]//;s/\[off\]//"
 
-	if=wlan0
-		while IFS=$': \t' read -r label value
-		do
-			case $label in SSID) SSID=$value
-				;;
-			signal) SIGNAL=$value
-				;;
-		esac
-	done < <(iw "$if" link)
+	echo "$delim"
 
-	echo -e "$SSID $SIGNAL $ip"
-}
+	# Wifi quality percentage and  icon if ethernet is connected.
+	grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }'
+	sed "s/down//;s/up//" /sys/class/net/w*/operstate
 
-print_mem(){
-	memfree=$(($(grep -m1 'MemAvailable:' /proc/meminfo | awk '{print $2}') / 1024))
-	echo -e "$memfree"
-}
+	# Show unread mail
+	command -v mw >/dev/null 2>&1 &&
+		echo "$delim" &&
+		du -a ~/Mail/*/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/:/'
+		echo "$delim"
 
-print_temp(){
-	test -f /sys/class/thermal/thermal_zone0/temp || return 0
-	echo $(head -c 2 /sys/class/thermal/thermal_zone0/temp)C
-}
+	# Will show all batteries with approximate icon for remaining power.
+	for x in /sys/class/power_supply/BAT?/capacity;
+	do
+	case "$(cat $x)" in
+		100|9[0-9])	echo "" ;;
+		8[0-9]|7[0-9])	echo "" ;;
+		6[0-9]|5[0-9])	echo "" ;;
+		4[0-9]|3[0-9])	echo "" ;;
+		*)		echo "" ;;
+	esac
+	done && echo "$delim"
 
-print_bat(){
-	hash acpi || return 0
-	onl="$(grep "on-line" <(acpi -V))"
-	charge="$(awk '{ sum += $1 } END { print sum }' /sys/class/power_supply/BAT*/capacity)"
-	if test -z "$onl"
-	then
-		# suspend when we close the lid
-		#systemctl --user stop inhibit-lid-sleep-on-battery.service
-		echo -e "${charge}"
-	else
-		# On mains! no need to suspend
-		#systemctl --user start inhibit-lid-sleep-on-battery.service
-		echo -e "${charge}"
-	fi
-}
+	# Date and time.
+	date '+%Y %b %d (%a) %I:%M%p'
+	}
 
-print_date(){
-	date "+%a %m-%d %T%:::z"
-}
+while :; do
+	# So all that big status function was just a command that quicking gets
+	# what we want to be the statusbar. This xsetroot command is what sets
+	# it. Note that the tr command replaces newlines with spaces. This is
+	# to prevent some weird issues that cause significant slowing of
+	# everything in dwm. Note entirely sure of the cause, but again, the tr
+	# command easily avoids it.
+	xsetroot -name "$(status | tr '\n' ' ')"
 
-show_record(){
-	test -f /tmp/r2d2 || return
-	rp=$(cat /tmp/r2d2 | awk '{print $2}')
-	size=$(du -h $rp | awk '{print $1}')
-	echo " $size $(basename $rp)"
-}
+	# Check to see if new weather report is needed.
 
-while true
-do
-
-	# Get new transmitted, received byte number values and current time
-	get_bytes
-
-	# Calculates speeds
-	vel_recv=$(get_velocity $received_bytes $old_received_bytes $now)
-	vel_trans=$(get_velocity $transmitted_bytes $old_transmitted_bytes $now)
-
-	xsetroot -name "$(print_mem) $separator $(vel_recv) $separator $(vel_trans) $separator $(print_temp) $separator $(print_wifi) $separator $(print_bat) $separator $(show_record) $separator $(print_date)"
-
-	# Update old values to perform new calculations
-	old_received_bytes=$received_bytes
-	old_transmitted_bytes=$transmitted_bytes
-	old_time=$now
-
-	sleep 1
-
+	# Sleep for a minute after changing the status bar before updating it
+	# again. Note that the `refbar` "refreshes" the statusbar by killing
+	# this command. Feel free to change the time interval if you want.
+	sleep 1m
 done
