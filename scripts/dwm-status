@@ -13,7 +13,8 @@ delim="|"
 # explained.
 status() { \
 
-	echo $(python /home/baitinq/.config/polybar/scripts/weather.py)
+	# Directs to the path of the weather script.
+	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
 
 	echo "$delim"
 
@@ -50,16 +51,18 @@ status() { \
 	for x in /sys/class/power_supply/BAT?/capacity;
 	do
 	case "$(cat $x)" in
-		100|9[0-9])	echo "" ;;
-		8[0-9]|7[0-9])	echo "" ;;
-		6[0-9]|5[0-9])	echo "" ;;
-		4[0-9]|3[0-9])	echo "" ;;
-		*)		echo "" ;;
+		100)            echo ""            ;;
+		9[0-9])	        echo " $(cat $x)%" ;;
+		8[0-9]|7[0-9])	echo " $(cat $x)%" ;;
+		6[0-9]|5[0-9])	echo " $(cat $x)%" ;;
+		4[0-9]|3[0-9])	echo " $(cat $x)%" ;;
+		2[0-9]|1[0-9])	echo " $(cat $x)%" ;;
+		[0-9])	        echo " $(cat $x)%" ;;
 	esac
 	done && echo "$delim"
 
 	# Date and time. FORMAT CORRECT NO PM
-	echo " $(date '+%Y %b %d (%a) %I:%M%p')"
+	echo " $(date '+%d-%m-%y (%a) |  %H:%M')"
 	}
 
 while :; do
