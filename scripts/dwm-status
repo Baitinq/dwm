@@ -88,6 +88,14 @@ status() { \
 	echo "$delim"
 
 	# Will show all batteries with approximate icon for remaining power.
+	ac_adapter=$(acpi -a | cut -d' ' -f3 | cut -d- -f1)
+	charging=""
+	if [ "$ac_adapter" == "on" ]; then
+    echo "" #Charging
+	else
+    : #Not Charging
+	fi
+
 	for x in /sys/class/power_supply/BAT?/capacity;
 	do
 	case "$(cat $x)" in
