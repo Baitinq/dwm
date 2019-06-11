@@ -23,7 +23,7 @@ updates() {
 	if [ "$updates" -gt 0 ]; then
 	    echo " Updates: $updates"
 	else
-	    echo "0"
+	    echo " Updates: 0"
 	fi
 
 }
