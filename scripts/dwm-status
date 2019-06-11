@@ -7,14 +7,54 @@
 
 delim="|"
 
+updates() {
+
+	if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
+	    updates_arch=0
+	fi
+
+	# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
+	if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
+	    updates_aur=0
+	fi
+
+	updates=$(("$updates_arch" + "$updates_aur"))
+
+	if [ "$updates" -gt 0 ]; then
+	    echo " Updates: $updates"
+	else
+	    echo "0"
+	fi
+
+}
+
+tor() {
+
+	icon_enabled="ﴣ"
+	icon_disabled=""
+	status=`systemctl is-active tor.service`
+
+	if [ $status == "active" ]
+	then
+	    echo "$delim $icon_enabled $delim"
+	else
+	    echo "$icon_disabled"
+	fi
+}
 
 # Here is the (big) function that outputs the appearance of the statusbar. It
 # can really be broken down into many submodules which I've commented and
 # explained.
 status() { \
 
+	echo $(tor)
+
 	# Directs to the path of the weather script.
 	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
+
+	echo "$delim"
+
+	echo $(updates)
 
 	echo "$delim"
 
