@@ -3,6 +3,8 @@
 import requests
 import os
 
+delim="|"
+
 # Check for an internet connection
 url='http://www.google.com/'
 timeout=5
@@ -32,6 +34,7 @@ if internet == True:
             CURRENT = REQ.json()["weather"][0]["description"].capitalize()
             TEMP = int(float(REQ.json()["main"]["temp"]))
             print(" {}, {} °{}".format(CURRENT, TEMP, UNIT_KEY))
+            print(delim)
         else:
             print("Error: BAD HTTP STATUS CODE " + str(REQ.status_code))
     except (ValueError, IOError):

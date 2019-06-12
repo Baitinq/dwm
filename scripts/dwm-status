@@ -36,7 +36,7 @@ tor() {
 
 	if [ $status == "active" ]
 	then
-	    echo "$delim $icon_enabled $delim"
+	    echo "$icon_enabled $delim"
 	else
 	    echo "$icon_disabled"
 	fi
@@ -52,7 +52,7 @@ status() { \
 	# Directs to the path of the weather script.
 	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
 
-	echo "$delim"
+#	echo "$delim" (done in the weather script)
 
 	echo $(updates)
 
