@@ -83,7 +83,14 @@ status() { \
 
 	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp2_input)
 	CPU_TEMP=$(expr "$CPU_T" / 1000)
-	echo "$CPU_TEMP°C"
+
+	if [ "$CPU_TEMP" -ge 70 ]; then
+		echo " $CPU_TEMP°C"
+	elif [ "$CPU_TEMP" -le 10 ]; then
+		echo " $CPU_TEMP°C"
+	else
+		echo " $CPU_TEMP°C"
+	fi
 
 	echo "$delim"
 
