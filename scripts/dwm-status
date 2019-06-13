@@ -6,26 +6,44 @@
 # Set the deliminter character.
 
 delim="|"
+internet=false
+
+checkinternet() {
+	echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
+
+	if [ $? -eq 0 ]; then
+		internet=true
+	else
+		internet=false
+	fi
+}
 
 updates() {
 
-	if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
-	    updates_arch=0
-	fi
+	if [ "$internet" = true ]; then
 
-	# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
-	if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
-	    updates_aur=0
-	fi
+		if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
+				updates_arch=0
+		fi
 
-	updates=$(("$updates_arch" + "$updates_aur"))
+		# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
+		if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
+				updates_aur=0
+		fi
 
-	if [ "$updates" -gt 0 ]; then
-	    echo " Updates: $updates"
+		updates=$(("$updates_arch" + "$updates_aur"))
+
+		if [ "$updates" -gt 0 ]; then
+				echo " Updates: $updates"
+		else
+				echo " Updates: 0"
+		fi
+
+		echo $delim
+
 	else
-	    echo " Updates: 0"
+		:
 	fi
-
 }
 
 tor() {
@@ -45,15 +63,26 @@ tor() {
 wireless() {
 
 	if grep -q wlan* "/proc/net/wireless"; then
+
 		# Wifi quality percentage
-		grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }'
+		percentage=$(grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70)}'| xargs)
+		case $percentage in
+			100|9[0-9]|8[0-9]|7[0-9])		  echo "" ;;
+			6[0-9]|5[0-9]|4[0-9]|3[0-9])	echo "" ;;
+			2[0-9]|1[0-9]|[0-9])	        echo "" ;;
+		esac
+
 		echo $delim
 	else
-		echo ""
+		:
 	fi
 
-
-
+	if [ "$internet" = true ]; then
+  	echo ""
+		echo $delim
+	else
+    :
+	fi
 }
 
 # Here is the (big) function that outputs the appearance of the statusbar. It
@@ -65,12 +94,9 @@ status() { \
 
 	# Directs to the path of the weather script.
 	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
-
-#	echo "$delim" (done in the weather script)
+	#	echo "$delim" (done in the weather script)
 
 	echo $(updates)
-
-	echo "$delim"
 
 	# Show unread mail
 	command -v neomutt >/dev/null 2>&1 &&
@@ -103,7 +129,6 @@ status() { \
 	else
 		echo " $CPU_TEMP°C"
 	fi
-
 	echo "$delim"
 
 	# Will show all batteries with approximate icon for remaining power.
@@ -123,8 +148,8 @@ status() { \
 		8[0-9]|7[0-9])	echo " $(cat $x)%" ;;
 		6[0-9]|5[0-9])	echo " $(cat $x)%" ;;
 		4[0-9]|3[0-9])	echo " $(cat $x)%" ;;
-		2[0-9]|1[0-9])	echo " $(cat $x)%" ;;
-		[0-9])	        echo " $(cat $x)%" ;;
+		2[0-9]|1[0-9])	echo " $(cat $x)%" ;;
+		[0-9])	        echo " $(cat $x)%" ;;
 	esac
 	done && echo "$delim"
 
@@ -141,6 +166,8 @@ while :; do
 	# command easily avoids it.
 	xsetroot -name "$(status | tr '\n' ' ')"
 
+	checkinternet
+	echo $internet
 	# Check to see if new weather report is needed.
 
 	# Sleep for a minute after changing the status bar before updating it
