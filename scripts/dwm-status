@@ -72,6 +72,12 @@ status() { \
 
 	echo "$delim"
 
+	# Show unread mail
+	command -v neomutt >/dev/null 2>&1 &&
+		echo "$delim" &&
+		du -a ~/Mail/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/: /' &&
+		echo "$delim"
+
 	# Get the volume of ALSA's master volume output.  Show an icon if or
 	# not muted.
 	active_sink=$(pacmd list-sinks | awk '/* index:/{print $3}')
@@ -87,12 +93,6 @@ status() { \
 	echo "$delim"
 
 	echo $(wireless)
-
-	# Show unread mail
-	command -v neomutt >/dev/null 2>&1 &&
-		echo "$delim" &&
-		du -a ~/Mail/*/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/:/' &&
-		echo "$delim"
 
 	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp2_input)
 	CPU_TEMP=$(expr "$CPU_T" / 1000)
