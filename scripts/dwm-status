@@ -44,9 +44,6 @@ tor() {
 
 wireless() {
 
-# Check internet connection
-
-
 	if grep -q wlan* "/proc/net/wireless"; then
 		# Wifi quality percentage
 		grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }'
@@ -92,7 +89,7 @@ status() { \
 	echo $(wireless)
 
 	# Show unread mail
-	command -v mw >/dev/null 2>&1 &&
+	command -v neomutt >/dev/null 2>&1 &&
 		echo "$delim" &&
 		du -a ~/Mail/*/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/:/' &&
 		echo "$delim"
