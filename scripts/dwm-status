@@ -42,6 +42,23 @@ tor() {
 	fi
 }
 
+wireless() {
+
+# Check internet connection
+
+
+	if grep -q wlan* "/proc/net/wireless"; then
+		# Wifi quality percentage
+		grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }'
+		echo $delim
+	else
+		echo ""
+	fi
+
+
+
+}
+
 # Here is the (big) function that outputs the appearance of the statusbar. It
 # can really be broken down into many submodules which I've commented and
 # explained.
@@ -72,13 +89,12 @@ status() { \
 
 	echo "$delim"
 
-	# Wifi quality percentage
-	grep "^\s*w" /proc/net/wireless | awk '{ print "", int($3 * 100 / 70) "%" }'
+	echo $(wireless)
 
 	# Show unread mail
 	command -v mw >/dev/null 2>&1 &&
 		echo "$delim" &&
-		du -a ~/Mail/*/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/:/'
+		du -a ~/Mail/*/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/:/' &&
 		echo "$delim"
 
 	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp2_input)
