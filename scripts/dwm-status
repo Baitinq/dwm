@@ -7,6 +7,7 @@
 
 delim="|"
 internet=false
+counter=0
 
 checkinternet() {
 	echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/null 2>&1
@@ -26,17 +27,21 @@ updates() {
 				updates_arch=0
 		fi
 
-		# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
-		if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
+		if (( $counter % 10 == 0 )); then #this is done to add a delay and not saturate aur requests
+			# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
+			if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
 				updates_aur=0
+			fi
+		else
+			updates_aur=0
 		fi
 
 		updates=$(("$updates_arch" + "$updates_aur"))
 
 		if [ "$updates" -gt 0 ]; then
-				echo " Updates: $updates"
+			echo " Updates: $updates"
 		else
-				echo " Updates: 0"
+			echo " Updates: 0"
 		fi
 
 		echo $delim
@@ -167,7 +172,8 @@ while :; do
 	xsetroot -name "$(status | tr '\n' ' ')"
 
 	checkinternet
-	# Check to see if new weather report is needed.
+
+	((counter++))
 
 	# Sleep for a minute after changing the status bar before updating it
 	# again. Note that the `refbar` "refreshes" the statusbar by killing
