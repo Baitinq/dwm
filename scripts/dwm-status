@@ -90,6 +90,18 @@ wireless() {
 	fi
 }
 
+bluetooth() {
+
+	status=`systemctl is-active bluetooth.service`
+
+	if [ $status == "active" ]
+	then
+	    echo ""
+	else
+	    echo ""
+	fi
+}
+
 # Here is the (big) function that outputs the appearance of the statusbar. It
 # can really be broken down into many submodules which I've commented and
 # explained.
@@ -119,6 +131,10 @@ status() { \
 	else
 			echo " $volume%"
 	fi
+
+	echo "$delim"
+
+	echo $(bluetooth)
 
 	echo "$delim"
 
