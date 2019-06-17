@@ -22,14 +22,14 @@ static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
-	[SchemeTitle]= { col_gray3, col_gray1, col_gray2  },
+	[SchemeTitle]= { col_gray3, col_gray1, col_gray2 },
 
 };
 static const unsigned int alphas[][3]      = {
 	/*               fg      bg        border     */
 	[SchemeNorm] = { OPAQUE, baralpha, borderalpha },
 	[SchemeSel]  = { OPAQUE, baralpha, borderalpha },
-	[SchemeTitle]= { OPAQUE, baralpha,  borderalpha},
+	[SchemeTitle]= { OPAQUE, baralpha, borderalpha },
 };
 
 /* tagging */
@@ -90,6 +90,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
+	{ MODKEY,                       XK_f,      togglefullscreen,{0}},
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_q,      killclient,     {0} },
 	/*

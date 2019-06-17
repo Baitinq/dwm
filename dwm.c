@@ -218,6 +218,7 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglefullscreen(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
@@ -1767,6 +1768,34 @@ togglefloating(const Arg *arg)
     selmon->sel->sfh = selmon->sel->h;
   }
 	arrange(selmon);
+}
+
+void
+togglefullscreen(const Arg *arg)
+{
+  if (!selmon->sel->isfullscreen) {
+		XChangeProperty(dpy, selmon->sel->win, netatom[NetWMState], XA_ATOM, 32,
+			PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
+		selmon->sel->isfullscreen = 1;
+		selmon->sel->oldstate = selmon->sel->isfloating;
+		selmon->sel->oldbw = selmon->sel->bw;
+		selmon->sel->bw = 0;
+		selmon->sel->isfloating = 1;
+		resizeclient(selmon->sel, selmon->sel->mon->mx, selmon->sel->mon->my, selmon->sel->mon->mw, selmon->sel->mon->mh);
+		XRaiseWindow(dpy, selmon->sel->win);
+	} else if (selmon->sel->isfullscreen){
+		XChangeProperty(dpy, selmon->sel->win, netatom[NetWMState], XA_ATOM, 32,
+			PropModeReplace, (unsigned char*)0, 0);
+		selmon->sel->isfullscreen = 0;
+		selmon->sel->isfloating = selmon->sel->oldstate;
+		selmon->sel->bw = selmon->sel->oldbw;
+		selmon->sel->x = selmon->sel->oldx;
+		selmon->sel->y = selmon->sel->oldy;
+		selmon->sel->w = selmon->sel->oldw;
+		selmon->sel->h = selmon->sel->oldh;
+		resizeclient(selmon->sel, selmon->sel->x, selmon->sel->y, selmon->sel->w, selmon->sel->h);
+		arrange(selmon->sel->mon);
+	}
 }
 
 void
