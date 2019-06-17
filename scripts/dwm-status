@@ -144,7 +144,7 @@ status() { \
 	CPU_TEMP=$(expr "$CPU_T" / 1000)
 
 	if [ "$CPU_TEMP" -ge 70 ]; then
-		echo "  $CPU_TEMP°C"
+		echo "🔥  $CPU_TEMP°C"
 	elif [ "$CPU_TEMP" -le 10 ]; then
 		echo "  $CPU_TEMP°C"
 	else
