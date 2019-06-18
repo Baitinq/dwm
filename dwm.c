@@ -38,6 +38,7 @@
 #include <X11/Xutil.h>
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
+#include <X11/extensions/shape.h>
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
 
@@ -95,7 +96,7 @@ struct Client {
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
 	unsigned int tags;
-	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+	int isfixed, iscentered, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -142,6 +143,7 @@ typedef struct {
 	const char *title;
 	unsigned int tags;
 	int isfloating;
+  int iscentered;
 	int monitor;
 } Rule;
 
@@ -193,6 +195,7 @@ static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
+static void drawroundedcorners(Client *c);
 static void resizemouse(const Arg *arg);
 static void restack(Monitor *m);
 static void run(void);
@@ -310,6 +313,7 @@ applyrules(Client *c)
 		&& (!r->instance || strstr(instance, r->instance)))
 		{
 			c->isfloating = r->isfloating;
+      c->iscentered = r->iscentered;
 			c->tags |= r->tags;
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
@@ -1064,6 +1068,12 @@ manage(Window w, XWindowAttributes *wa)
 		&& (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
 	c->bw = borderpx;
 
+  if(c->iscentered) {
+    c->x = (c->mon->mw - WIDTH(c)) / 2;
+    c->y = (c->mon->mh - HEIGHT(c)) / 2;
+    if(c->isfloating) drawroundedcorners(c);
+  }
+
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColBorder].pixel);
@@ -1290,9 +1300,56 @@ resizeclient(Client *c, int x, int y, int w, int h)
     c->h = wc.height += c->bw * 2;
   }
 
+  if(!c->isfloating && round_non_floating == 1) drawroundedcorners(c);
+
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
+}
+
+void drawroundedcorners(Client *c) {
+
+    if(corner_radius > 0 && c && !c->isfullscreen){
+        Window win;
+        win = c->win;
+        if(!win) return;
+
+        XWindowAttributes win_attr;
+        if(!XGetWindowAttributes(dpy, win, &win_attr)) return;
+
+        const int w = c->w;
+        const int h = c->h;
+
+        const int dia = 2 * corner_radius; // set in config.h
+        if(w < dia || h < dia) return;
+
+        Pixmap mask;
+        mask = XCreatePixmap(dpy, win, w, h, 1);
+        if(!mask) return;
+
+        XGCValues xgcv;
+        GC shape_gc;
+        shape_gc = XCreateGC(dpy, mask, 0, &xgcv);
+
+        if(!shape_gc) {
+            XFreePixmap(dpy, mask);
+            free(shape_gc);
+            return;
+        }
+
+        XSetForeground(dpy, shape_gc, 0);
+        XFillRectangle(dpy, mask, shape_gc, 0, 0, w, h);
+        XSetForeground(dpy, shape_gc, 1);
+        XFillArc(dpy, mask, shape_gc, 0, 0, dia, dia, 0, 23040);
+        XFillArc(dpy, mask, shape_gc, w-dia-1, 0, dia, dia, 0, 23040);
+        XFillArc(dpy, mask, shape_gc, 0, h-dia-1, dia, dia, 0, 23040);
+        XFillArc(dpy, mask, shape_gc, w-dia-1, h-dia-1, dia, dia, 0, 23040);
+        XFillRectangle(dpy, mask, shape_gc, corner_radius, 0, w-dia, h);
+        XFillRectangle(dpy, mask, shape_gc, 0, corner_radius, w, h-dia);
+        XShapeCombineMask(dpy, win, ShapeBounding, 0, 0, mask, ShapeSet);
+        XFreePixmap(dpy, mask);
+        XFreeGC(dpy, shape_gc);
+    }
 }
 
 void
@@ -1339,6 +1396,8 @@ resizemouse(const Arg *arg)
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
+
+      drawroundedcorners(c);
 			break;
 		}
 	} while (ev.type != ButtonRelease);
@@ -1350,6 +1409,7 @@ resizemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+  drawroundedcorners(c);
 }
 
 void
