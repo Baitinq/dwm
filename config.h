@@ -1,12 +1,12 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const unsigned int borderpx  = 1;         /* border pixel of windows */
+static const unsigned int borderpx  = 2;         /* border pixel of windows */
 static const unsigned int gappx     = 10;        /* gap pixel between windows */
 static const unsigned int snap      = 32;        /* snap pixel */
 static const int showbar            = 1;         /* 0 means no bar */
 static const int topbar             = 1;         /* 0 means bottom bar */
-static const int focusonwheel       = 0;				 /* 0 means no focus when click mouse wheel */
+static const int focusonwheel       = 1;				 /* 0 means no focus when click mouse wheel */
 static const char *fonts[]          = { "Noto Sans Display Nerd Font:size=10" };
 static const char dmenufont[]       = "Noto Sans Display Nerd Font:size=10";
 static const char col_gray1[]       = "#222222";

@@ -1339,7 +1339,6 @@ resizemouse(const Arg *arg)
 			}
 			if (!selmon->lt[selmon->sellt]->arrange || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
-
 			break;
 		}
 	} while (ev.type != ButtonRelease);
