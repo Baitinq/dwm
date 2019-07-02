@@ -169,8 +169,16 @@ status() { \
 		8[0-9]|7[0-9])	echo " $(cat $x)%" ;;
 		6[0-9]|5[0-9])	echo " $(cat $x)%" ;;
 		4[0-9]|3[0-9])	echo " $(cat $x)%" ;;
-		2[0-9]|1[0-9])	echo "   $(cat $x)%" ;;
-		[0-9])	        echo "   $(cat $x)%" ;;
+		2[0-9]|1[0-9])	if [ "$ac_adapter" == "on" ]; then
+											echo " $(cat $x)%"
+										else
+			 								echo "   $(cat $x)%"
+										fi ;;
+		[0-9])	        if [ "$ac_adapter" == "on" ]; then
+											echo " $(cat $x)%"
+										else
+			 								echo "   $(cat $x)%"
+										fi ;;
 	esac
 	done && echo "$delim"
 
