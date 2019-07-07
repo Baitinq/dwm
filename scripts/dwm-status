@@ -27,7 +27,7 @@ updates() {
 				updates_arch=0
 		fi
 
-		if (( $counter % 10 == 0 )); then #this is done to add a delay and not saturate aur requests
+		if (( $counter % 60 == 0 )); then #this is done to add a delay and not saturate aur requests
 			# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
 			if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
 				updates_aur=0
