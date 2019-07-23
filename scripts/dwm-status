@@ -23,36 +23,33 @@ updates() {
 
 	if [ "$internet" = true ]; then
 
-		if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
-				updates_arch=0
-		fi
+  	if ! updates_arch=$(checkupdates 2> /dev/null | wc -l ); then
+    	updates_arch=0
+    fi
 
-		if (( $counter % 60 == 0 )); then #this is done to add a delay and not saturate aur requests
-			# if ! updates_aur=$(cower -u 2> /dev/null | wc -l); then
-			if ! updates_aur=$(trizen -Su --aur --quiet | wc -l); then
-				updates_aur=0
-			else
-			updates_aur=0
-			fi
-		else
-			:
-		fi
-		# TODO: Implenent devel update accounting
-    updates_devel=0
-		updates=$(("$updates_arch" + "$updates_aur" + "$updates_devel"))
+    if (( $counter % 60 == 0 )); then #this is done to add a delay and not saturate aur requests
+    	if ! updates_aur=$(yay -Qum --devel 2> /dev/null | wc -l); then
+      	updates_aur=0
+      fi
+    else
+      updates_aur=0
+    fi
 
-		if [ "$updates" -gt 0 ]; then
-			echo " Updates: $updates"
-		else
-			echo " Updates: 0"
-		fi
+    updates=$(("$updates_arch" + "$updates_aur"))
 
-		echo $delim
+    if [ "$updates" -gt 0 ]; then
+    	echo " Updates: $updates"
+    else
+      echo " Updates: 0"
+    fi
 
-	else
-		:
-	fi
+    echo $delim
+
+  	else
+    	:
+  fi
 }
+
 
 tor() {
 
