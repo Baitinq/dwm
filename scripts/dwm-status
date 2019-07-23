@@ -55,9 +55,9 @@ tor() {
 
 	icon_enabled="ﴣ"
 	icon_disabled=""
-	status=`systemctl is-active tor.service`
+	status=$(systemctl is-active tor.service)
 
-	if [ $status == "active" ]
+	if [ "$status" == "active" ]
 	then
 	    echo "$icon_enabled $delim"
 	else
@@ -92,9 +92,9 @@ wireless() {
 
 bluetooth() {
 
-	status=`systemctl is-active bluetooth.service`
+	status=$(systemctl is-active bluetooth.service)
 
-	if [ $status == "active" ]
+	if [ "$status" == "active" ]
 	then
 	    echo ""
 	else
