@@ -14,7 +14,7 @@ try:
 except requests.ConnectionError:
     internet = False
 
-COORDINATES = s = open("/usr/share/geolocate/.location", 'r').read()
+COORDINATES = open("/usr/share/geolocate/.location", 'r').read()
 LOCATION = "lat=" + COORDINATES.replace(":","&lon=")
 
 API_KEY = "756edce7e9d4c385ef9499a53492678c"

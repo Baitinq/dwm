@@ -27,13 +27,13 @@ updates() {
     	updates_arch=0
     fi
 
-    if (( $counter % 60 == 0 )); then #this is done to add a delay and not saturate aur requests
+    #if (( $counter % 60 == 0 )); then #this is done to add a delay and not saturate aur requests
     	if ! updates_aur=$(yay -Qum --devel 2> /dev/null | wc -l); then
       	updates_aur=0
     	fi
-    else
-      :
-    fi
+    #else
+    #  updates_aur=0 # this is wrong. There shouldnt be else but fi
+    #fi
 
     updates=$(("$updates_arch" + "$updates_aur"))
 
@@ -107,13 +107,13 @@ bluetooth() {
 # explained.
 status() { \
 
-	echo $(tor)
+	tor
 
 	# Directs to the path of the weather script.
 	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
 	#	echo "$delim" (done in the weather script)
 
-	echo $(updates)
+	updates
 
 	# Show unread mail
 	command -v neomutt >/dev/null 2>&1 &&
@@ -134,11 +134,11 @@ status() { \
 
 	echo "$delim"
 
-	echo $(bluetooth)
+	bluetooth
 
 	echo "$delim"
 
-	echo $(wireless)
+	wireless
 
 	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp2_input)
 	CPU_TEMP=$(expr "$CPU_T" / 1000)
@@ -192,9 +192,10 @@ while :; do
 	# to prevent some weird issues that cause significant slowing of
 	# everything in dwm. Note entirely sure of the cause, but again, the tr
 	# command easily avoids it.
-	xsetroot -name "$(status | tr '\n' ' ')"
-
+	
 	checkinternet
+
+	xsetroot -name "$(status | tr '\n' ' ')"
 
 	((counter++))
 
