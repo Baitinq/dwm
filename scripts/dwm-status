@@ -100,8 +100,9 @@ bluetooth() {
 	if [ "$status" == "active" ]
 	then
 	    echo ""
+	    echo "$delim"
 	else
-	    echo ""
+	    echo ""
 	fi
 }
 
@@ -188,8 +189,6 @@ status() { \
 	volume
 
 	bluetooth
-
-	echo "$delim"
 
 	wireless
 
