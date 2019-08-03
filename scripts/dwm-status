@@ -68,7 +68,9 @@ tor() {
 	fi
 }
 
-wireless() {
+connection() {
+
+	#Add ethernet checking (plugged in) Icon(s):  
 
 	if grep -q wlan* "/proc/net/wireless"; then
 
@@ -81,8 +83,6 @@ wireless() {
 		esac
 
 		echo $delim
-	else
-		:
 	fi
 
 	if [ "$internet" = true ]; then
@@ -190,7 +190,7 @@ status() { \
 
 	bluetooth
 
-	wireless
+	connection
 
 	temperature
 
