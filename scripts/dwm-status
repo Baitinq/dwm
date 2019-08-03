@@ -68,9 +68,11 @@ tor() {
 	fi
 }
 
-connection() {
+network() {
 
 	#Add ethernet checking (plugged in) Icon(s):  
+	#If this contains a 1 /sys/class/net/eth?/carrier:0/1
+	# https://stackoverflow.com/questions/808560/how-to-detect-the-physical-connected-state-of-a-network-cable-connector
 
 	if grep -q wlan* "/proc/net/wireless"; then
 
@@ -190,7 +192,7 @@ status() { \
 
 	bluetooth
 
-	connection
+	network
 
 	temperature
 
