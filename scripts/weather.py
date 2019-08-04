@@ -14,8 +14,8 @@ try:
 except requests.ConnectionError:
     internet = False
 
-COORDINATES = open("/usr/share/geolocate/.location", 'r').read()
-LOCATION = "lat=" + COORDINATES.replace(":","&lon=")
+#COORDINATES = open("/usr/share/geolocate/.location", 'r').read()
+#LOCATION = "lat=" + COORDINATES.replace(":","&lon=")
 
 API_KEY = "756edce7e9d4c385ef9499a53492678c"
 UNITS = "Metric"
@@ -25,6 +25,9 @@ LANG = "en"
 #LANG = "nl"
 #LANG = "hu"
 if internet == True:
+    COORDINATES = os.popen("geolocate").read()
+    LOCATION = "lat=" + COORDINATES.replace(":","&lon=")
+
     API="http://api.openweathermap.org/data/2.5/weather?{}&lang={}&appid={}&units={}".format(LOCATION.strip(), LANG,  API_KEY, UNITS)
     REQ = requests.get(API)
     #REQ = requests.get("http://api.openweathermap.org/data/2.5/weather?lat=50.84660&lon=4.35280&lang=en&appid=756edce7e9d4c385ef9499a53492678c&units=Metric")
