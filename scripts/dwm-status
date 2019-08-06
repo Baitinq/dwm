@@ -1,8 +1,5 @@
 #!/bin/sh
 
-#TODO: Clean up the status function with individual separate functions (battery etc)
-
-
 # This script sets the statusbar with the xsetroot command at the end. Have it
 # started by ~/.xinitrc or ~/.xprofile.
 
@@ -71,7 +68,7 @@ tor() {
 network() {
 
 	if [ "$(cat /sys/class/net/eth?/carrier)" == "1" ]; then
-		echo "" # 
+		echo "" # 
 		echo "$delim"
 	fi
 
