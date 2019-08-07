@@ -67,11 +67,6 @@ tor() {
 
 network() {
 
-	if [ "$(cat /sys/class/net/eth?/carrier)" == "1" ]; then
-		echo "" # 
-		echo "$delim"
-	fi
-
 	if grep -q wlan* "/proc/net/wireless"; then
 
 		# Wifi quality percentage
@@ -83,6 +78,11 @@ network() {
 		esac
 
 		echo $delim
+	fi
+
+	if [ "$(cat /sys/class/net/eth?/carrier)" == "1" ]; then
+		echo "" # 
+		echo "$delim"
 	fi
 
 	if [ "$internet" = true ]; then
@@ -102,7 +102,7 @@ bluetooth() {
 	    echo ""
 	    echo "$delim"
 	else
-	    :	
+	    :
 	    #echo ""
 	fi
 }
@@ -144,7 +144,7 @@ battery(){
 		if [ "$ac_adapter" == "Charging" ]; then
 			echo ""
 		fi
-		
+
 		# Will show all batteries with approximate icon for remaining power.
 		for x in /sys/class/power_supply/BAT?/capacity;
 		do
