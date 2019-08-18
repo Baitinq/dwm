@@ -20,6 +20,43 @@ checkinternet() {
 	fi
 }
 
+weather(){
+	if [ "$internet" = true ]; then
+		LOCATION=$(geolocate)
+		LANG="en"
+		UNITS="Metric"
+		API_KEY="756edce7e9d4c385ef9499a53492678c"
+
+		LOCATION_FORMATTED_2=$(echo $LOCATION | cut -d ':' -f2)
+		LOCATION_FORMATTED_1=$(echo $LOCATION | cut -d ':' -f1)
+
+		OUTPUT=$(curl -s "http://api.openweathermap.org/data/2.5/weather?lat=$LOCATION_FORMATTED_1&lon=$LOCATION_FORMATTED_2&lang=$LANG&appid=$API_KEY&units=$UNITS")
+		STATUS=$(echo $OUTPUT | jq '.weather' | tr '[' ' ' | tr ']' ' ' | jq '.main' | sed 's/"//g')
+		TEMP=$(echo $OUTPUT | jq '.main' | jq '.temp' | xargs printf "%.*f\n" 0)
+
+		case $STATUS in
+			"Clear" )
+				echo "";;
+			"Cloud" )	
+				echo "摒";;
+			"Rain" )
+				echo "歹";;
+			"Thunder" )
+				echo "朗";;
+			"Snow" )
+				echo "流";;
+			"Mist" )
+				echo "敖";;
+			"*" )
+				echo "摒";;
+		esac
+
+		echo "$STATUS, "
+		echo "$TEMP°C"
+		echo "$delim"
+	fi
+}
+
 setaurupdates(){
 	if [ "$internet" = true ]; then
 		if (( $counter % 30 == 0 )); then
@@ -79,10 +116,12 @@ network() {
 
 		echo $delim
 	fi
-
-	if [ "$(cat /sys/class/net/eth?/carrier)" == "1" ]; then
-		echo "" # 
-		echo "$delim"
+	
+	if [ -d /sys/class/net/eth? ]; then
+		if [ "$(cat /sys/class/net/eth?/carrier)" == "1" ]; then
+			echo "" # 
+			echo "$delim"
+		fi
 	fi
 
 	if [ "$internet" = true ]; then
@@ -176,9 +215,7 @@ status() { \
 
 	tor
 
-	# Directs to the path of the weather script.
-	echo $(python $( cd "$(dirname "$0")" ; pwd -P )/weather.py)
-	#	echo "$delim" (done in the weather script)
+	weather
 
 	updates
 
