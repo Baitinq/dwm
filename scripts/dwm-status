@@ -37,7 +37,7 @@ weather(){
 		case $STATUS in
 			"Clear" )
 				echo "";;
-			"Cloud" )	
+			"Clouds" )	
 				echo "摒";;
 			"Rain" )
 				echo "歹";;
@@ -47,7 +47,7 @@ weather(){
 				echo "流";;
 			"Mist" )
 				echo "敖";;
-			"*" )
+			* )
 				echo "摒";;
 		esac
 
