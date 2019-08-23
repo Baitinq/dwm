@@ -213,7 +213,7 @@ battery(){
 # explained.
 status() { \
 
-	echo "  " #padding
+	echo " " #padding
 
 	tor
 
