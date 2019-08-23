@@ -213,6 +213,8 @@ battery(){
 # explained.
 status() { \
 
+	echo "  " #padding
+
 	tor
 
 	weather
