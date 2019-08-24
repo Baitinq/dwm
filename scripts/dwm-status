@@ -87,6 +87,17 @@ updates() {
   fi
 }
 
+todo() {
+	command -v t >/dev/null 2>&1 &&
+        echo "$(t | wc -l)" &&
+        echo "$delim"
+}
+
+mail() {
+	command -v neomutt >/dev/null 2>&1 &&
+        du -a ~/Mail/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/: /' &&
+        echo "$delim"
+}
 
 tor() {
 
@@ -219,10 +230,9 @@ status() { \
 
 	updates
 
-	# Show unread mail
-	command -v neomutt >/dev/null 2>&1 &&
-		du -a ~/Mail/INBOX/new/* 2>/dev/null | wc -l | sed 's/^/: /' &&
-		echo "$delim"
+	todo
+
+	mail
 
 	volume
 
