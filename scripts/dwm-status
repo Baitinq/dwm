@@ -89,7 +89,7 @@ updates() {
 
 todo() {
 	command -v t >/dev/null 2>&1 &&
-        echo " $(t --task-dir ~/.todo --list tasks | wc -l)" &&
+        echo ": $(t --task-dir ~/.todo --list tasks | wc -l)" &&
         echo "$delim"
 }
 
