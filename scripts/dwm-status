@@ -41,7 +41,7 @@ weather(){
 				echo "摒";;
 			"Rain" )
 				echo "歹";;
-			"Thunder" )
+			"Thunderstorm" )
 				echo "朗";;
 			"Snow" )
 				echo "流";;
