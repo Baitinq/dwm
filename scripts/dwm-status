@@ -174,7 +174,7 @@ volume(){
 }
 
 temperature(){
-	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp2_input)
+	CPU_T=$(< /sys/devices/platform/coretemp.0/hwmon/hwmon?/temp2_input)
 	CPU_TEMP=$(expr "$CPU_T" / 1000)
 
 	if [ "$CPU_TEMP" -ge 70 ]; then
