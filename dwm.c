@@ -110,6 +110,11 @@ typedef struct {
 } Key;
 
 typedef struct {
+	const char * sig;
+	void (*func)(const Arg *);
+} Signal;
+
+typedef struct {
 	const char *symbol;
 	void (*arrange)(Monitor *);
 } Layout;
@@ -152,6 +157,7 @@ static void arrange(Monitor *m);
 static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachstack(Client *c);
+static int fake_signal(void);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -179,10 +185,10 @@ static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
-static void keypress(XEvent *e);
+//static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
-static void mappingnotify(XEvent *e);
+//static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void movemouse(const Arg *arg);
@@ -261,8 +267,8 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[DestroyNotify] = destroynotify,
 	[Expose] = expose,
 	[FocusIn] = focusin,
-	[KeyPress] = keypress,
-	[MappingNotify] = mappingnotify,
+	[KeyPress] = NULL, //keypress
+	[MappingNotify] = NULL,//mappingnotify,
 	[MapRequest] = maprequest,
 	[PropertyNotify] = propertynotify,
 	[UnmapNotify] = unmapnotify
@@ -290,20 +296,21 @@ struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
 void
 applyrules(Client *c)
 {
-	const char *class, *instance;
+    //NO RULESS
+	/*const char *class, *instance;
 	unsigned int i;
 	const Rule *r;
 	Monitor *m;
-	XClassHint ch = { NULL, NULL };
+	XClassHint ch = { NULL, NULL };*/
 
 	/* rule matching */
 	c->isfloating = 0;
 	c->tags = 0;
-	XGetClassHint(dpy, c->win, &ch);
+	/*XGetClassHint(dpy, c->win, &ch);
 	class    = ch.res_class ? ch.res_class : broken;
 	instance = ch.res_name  ? ch.res_name  : broken;
 
-	for (i = 0; i < LENGTH(rules); i++) {
+    for (i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
 		if ((!r->title || strstr(c->name, r->title))
 		&& (!r->class || strstr(class, r->class))
@@ -319,7 +326,7 @@ applyrules(Client *c)
 	if (ch.res_class)
 		XFree(ch.res_class);
 	if (ch.res_name)
-		XFree(ch.res_name);
+		XFree(ch.res_name);*/
 	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }
 
@@ -963,7 +970,7 @@ grabbuttons(Client *c, int focused)
 void
 grabkeys(void)
 {
-	updatenumlockmask();
+/*	updatenumlockmask();
 	{
 		unsigned int i, j;
 		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
@@ -975,7 +982,7 @@ grabkeys(void)
 				for (j = 0; j < LENGTH(modifiers); j++)
 					XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
 						True, GrabModeAsync, GrabModeAsync);
-	}
+	}*/
 }
 
 void
@@ -997,7 +1004,7 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info)
 }
 #endif /* XINERAMA */
 
-void
+/*void
 keypress(XEvent *e)
 {
 	unsigned int i;
@@ -1011,6 +1018,49 @@ keypress(XEvent *e)
 		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
 		&& keys[i].func)
 			keys[i].func(&(keys[i].arg));
+}**/
+
+int
+fake_signal(void)
+{
+        char fsignal[256];
+        char indicator[9] = "dsignal:";
+        char str_sig[50];
+        char param[16];
+        int i, len_str_sig, n, paramn;
+        size_t len_fsignal, len_indicator = strlen(indicator);
+        Arg arg;
+
+        // Get root name property
+        if (gettextprop(root, XA_WM_NAME, fsignal, sizeof(fsignal))) {
+                len_fsignal = strlen(fsignal);
+
+                // Check if this is indeed a fake signal
+                if (len_indicator > len_fsignal ? 0 : strncmp(indicator, fsignal, len_indicator) == 0) {
+                        paramn = sscanf(fsignal + len_indicator, "%s%n%s%n", str_sig, &len_str_sig, param, &n);
+
+                        if (paramn == 1) arg = (Arg) {0};
+                        else if (paramn > 2) return 1;
+                        else if (strncmp(param, "i", n - len_str_sig) == 0)
+                                sscanf(fsignal + len_indicator + n, "%i", &(arg.i));
+                        else if (strncmp(param, "ui", n - len_str_sig) == 0)
+                                sscanf(fsignal + len_indicator + n, "%u", &(arg.ui));
+                        else if (strncmp(param, "f", n - len_str_sig) == 0)
+                                sscanf(fsignal + len_indicator + n, "%f", &(arg.f));
+                        else return 1;
+
+                        // Check if a signal was found, and if so handle it
+                        for (i = 0; i < LENGTH(signals); i++)
+                                if (strncmp(str_sig, signals[i].sig, len_str_sig) == 0 && signals[i].func)
+                                        signals[i].func(&(arg));
+
+                        // A fake signal was sent
+                        return 1;
+                }
+        }
+
+        // No fake signal was sent, so proceed with update
+        return 0;
 }
 
 void
@@ -1095,7 +1145,7 @@ manage(Window w, XWindowAttributes *wa)
 	focus(NULL);
 }
 
-void
+/*void
 mappingnotify(XEvent *e)
 {
 	XMappingEvent *ev = &e->xmapping;
@@ -1103,7 +1153,7 @@ mappingnotify(XEvent *e)
 	XRefreshKeyboardMapping(ev);
 	if (ev->request == MappingKeyboard)
 		grabkeys();
-}
+}*/
 
 void
 maprequest(XEvent *e)
@@ -1217,9 +1267,11 @@ propertynotify(XEvent *e)
 	Window trans;
 	XPropertyEvent *ev = &e->xproperty;
 
-	if ((ev->window == root) && (ev->atom == XA_WM_NAME))
-		updatestatus();
-	else if (ev->state == PropertyDelete)
+	if ((ev->window == root) && (ev->atom == XA_WM_NAME)) {
+    	if (!fake_signal())
+    		updatestatus();
+    }
+    else if (ev->state == PropertyDelete)
 		return; /* ignore */
 	else if ((c = wintoclient(ev->window))) {
 		switch(ev->atom) {
