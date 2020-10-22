@@ -1073,7 +1073,7 @@ int
 fake_signal(void)
 {
         char fsignal[256];
-        char indicator[9] = "dsignal:";
+        char indicator[9] = "fsignal:";
         char str_sig[50];
         char param[16];
         int i, len_str_sig, n, paramn;
@@ -1101,7 +1101,10 @@ fake_signal(void)
                         // Check if a signal was found, and if so handle it
                         for (i = 0; i < LENGTH(signals); i++)
                                 if (strcmp(str_sig, signals[i].sig) == 0 && signals[i].func)
+                                {
                                     signals[i].func(&(arg));
+                                    break;
+                                }
                         
                         // A fake signal was sent
                         return 1;
